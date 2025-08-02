@@ -1,1 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanzas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8; /* Color de fondo suave */
+        }
+        h2 {
+            text-align: center;
+            color: #3a3a3a; /* Color de texto más oscuro */
+            margin-bottom: 20px;
+        }
+        h3 {
+            color: #5c6bc0; /* Color pastel para subtítulos */
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: #ffffff; /* Fondo blanco para las tablas */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #e0e0e0; /* Bordes suaves */
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #bbdefb; /* Color pastel para encabezados */
+            color: #333; /* Texto oscuro en encabezados */
+            cursor: pointer;
+        }
+        th:hover {
+            background-color: #90caf9; /* Color más oscuro al pasar el mouse */
+        }
+        tr:nth-child(even) {
+            background-color: #f1f8e9; /* Color pastel suave para filas pares */
+        }
+        tr:nth-child(odd) {
+            background-color: #fce4ec; /* Color pastel suave para filas impares */
+        }
+        input[type="text"], select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #b2b2b2; /* Bordes suaves */
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #64b5f6; /* Color pastel para botones */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #42a5f5; /* Color más oscuro al pasar el mouse */
+        }
+        .summary {
+            background-color: #e1f5fe; /* Color pastel para resúmenes */
+            border-left: 6px solid #039be5; /* Color de borde */
+            padding: 10px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .total {
+            font-weight: bold;
+            color: #d32f2f; /* Color rojo para totales */
+        }
+        .description {
+            display: none; /* Ocultar por defecto */
+            padding: 10px;
+            background-color: #f0f4f8; /* Color de fondo para descripciones */
+            border: 1px solid #e0e0e0; /* Bordes suaves */
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        .toggle-button {
+            background-color: transparent; /* Botón transparente */
+            border: none;
+            cursor: pointer;
+            font-size: 20px; /* Tamaño del ícono */
+            color: #5c6bc0; /* Color del ícono */
+        }
+        .toggle-button:hover {
+            color: #3f51b5; /* Color más oscuro al pasar el mouse */
+        }
+        /* Estilo para la columna de fecha */
+        th:nth-child(1), td:nth-child(1) {
+            width: 80px; /* Ancho fijo para la columna de fecha */
+        }
+        /* Estilo para la columna de descripción */
+        td.description-cell {
+            width: 50px; /* Ancho fijo para la columna de descripción */
+            text-align: center; /* Centrar el contenido */
+        }
+        /* Colores por categoría */
+        .OTROS {
+            background-color: #ffccbc; /* Color pastel amarillo */
+        }
+        .HCC {
+            background-color: #bbdefb; /* Color pastel azul */
+            color: #333;
+        }
+        .CS {
+            background-color: #ffab91; /* Color pastel rojo */
+            color: #333;
+        }
+        .OCK {
+            background-color: #c5e1a5; /* Color pastel verde */
+            color: #333;
+        }
+        .FENIX {
+            background-color: #ffe082; /* Color pastel naranja */
+            color: #333;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let totalEnero = 0;
+        let totalFebrero = 0;
+        let totalMarzo = 0;
+        let totalAbril = 0;
+        let totalMayo = 0;
+        let totalJunio = 0;
+        let totalJulio = 0;
 
+        function toggleDescription(button) {
+            const description = button.nextElementSibling;
+            if (description.style.display === "none" || description.style.display === "") {
+                description.style.display = "block";
+            } else {
+                description.style.display = "none";
+            }
+        }
+
+        function toggleDescriptions(tableId) {
+            const table = document.getElementById(tableId);
+            const descriptions = table.querySelectorAll('.description');
+            descriptions.forEach(description => {
+                if (description.style.display === "none" || description.style.display === "") {
+                    description.style.display = "block";
+                } else {
+                    description.style.display = "none";
+                }
+            });
+        }
+
+        function addEntry() {
+            const monthInput = document.getElementById("monthInput").value;
+            const dateInput = document.getElementById("dateInput").value;
+            const amountInput = parseFloat(document.getElementById("amountInput").value);
+            const categoryInput = document.getElementById("categoryInput").value;
+            const descriptionInput = document.getElementById("descriptionInput").value;
+
+            if (!monthInput || !dateInput || isNaN(amountInput) || !categoryInput) {
+                alert("Por favor, completa todos los campos.");
+                return;
+            }
+
+            let tableId = monthInput.toLowerCase() + "Table";
+            let table = document.getElementById(tableId);
+            let newRow = table.insertRow(-1);
+            newRow.className = categoryInput;
+
+            let cellDate = newRow.insertCell(0);
+            let cellAmount = newRow.insertCell(1);
+            let cellCategory = newRow.insertCell(2);
+            let cellDescription = newRow.insertCell(3);
+
+            cellDate.innerText = dateInput;
+            cellAmount.innerText = `$${amountInput.toFixed(2)}`;
+            cellCategory.innerText = categoryInput;
+            cellDescription.className = "description-cell";
+            cellDescription.innerHTML = `<button class="toggle-button" onclick="toggleDescription(this)">👁️</button><div class="description">${descriptionInput}</div>`;
+
+            // Actualizar el total correspondiente
+            switch (monthInput) {
+                case "Enero":
+                    totalEnero += amountInput;
+                    document.getElementById("totalEnero").innerText = `$${totalEnero.toFixed(2)}`;
+                    break;
+                case "Febrero":
+                    totalFebrero += amountInput;
+                    document.getElementById("totalFebrero").innerText = `$${totalFebrero.toFixed(2)}`;
+                    break;
+                case "Marzo":
+                    totalMarzo += amountInput;
+                    document.getElementById("totalMarzo").innerText = `$${totalMarzo.toFixed(2)}`;
+                    break;
+                case "Abril":
+                    totalAbril += amountInput;
+                    document.getElementById("totalAbril").innerText = `$${totalAbril.toFixed(2)}`;
+                    break;
+                case "Mayo":
+                    totalMayo += amountInput;
+                    document.getElementById("totalMayo").innerText = `$${totalMayo.toFixed(2)}`;
+                    break;
+                case "Junio":
+                    totalJunio += amountInput;
+                    document.getElementById("totalJunio").innerText = `$${totalJunio.toFixed(2)}`;
+                    break;
+                case "Julio":
+                    totalJulio += amountInput;
+                    document.getElementById("totalJulio").innerText = `$${totalJulio.toFixed(2)}`;
+                    break;
+            }
+
+            // Limpiar los campos del formulario
+            document.getElementById("financeForm").reset();
+
+            // Actualizar el gráfico
+            updateChart();
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('incomeChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: [totalEnero, totalFebrero, totalMarzo, totalAbril, totalMayo, totalJunio, totalJulio],
+                        backgroundColor: 'rgba(100, 181, 246, 0.5)',
+                        borderColor: 'rgba(100, 181, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function sortTable(columnIndex, tableId) {
+            const table = document.getElementById(tableId);
+            const rows = Array.from(table.rows).slice(1); // Ignorar el encabezado
+            const sortedRows = rows.sort((a, b) => {
+                const aText = a.cells[columnIndex].innerText;
+                const bText = b.cells[columnIndex].innerText;
+                return aText.localeCompare(bText, undefined, { numeric: true });
+            });
+            sortedRows.forEach(row => table.appendChild(row)); // Reorganizar las filas en el DOM
+        }
+
+        function filterTable() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toLowerCase();
+            const tables = document.querySelectorAll("table");
+            tables.forEach(table => {
+                const rows = table.getElementsByTagName("tr");
+                for (let i = 1; i < rows.length; i++) { // Ignorar el encabezado
+                    const cells = rows[i].getElementsByTagName("td");
+                    let found = false;
+                    for (let j = 0; j < cells.length; j++) {
+                        if (cells[j].innerText.toLowerCase().includes(filter)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    rows[i].style.display = found ? "" : "none";
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+
+<h2>Finanzas</h2>
+
+<input type="text" id="searchInput" placeholder="Buscar ingresos..." onkeyup="filterTable()">
+
+<h3>Agregar Nuevo Ingreso/Pago</h3>
+<form id="financeForm">
+    <select id="monthInput" required>
+        <option value="" disabled selected>Seleccionar Mes</option>
+        <option value="Enero">Enero</option>
+        <option value="Febrero">Febrero</option>
+        <option value="Marzo">Marzo</option>
+        <option value="Abril">Abril</option>
+        <option value="Mayo">Mayo</option>
+        <option value="Junio">Junio</option>
+        <option value="Julio">Julio</option>
+        <option value="Agosto">Agosto</option>
+        <option value="Septiembre">Septiembre</option>
+        <option value="Octubre">Octubre</option>
+        <option value="Noviembre">Noviembre</option>
+        <option value="Diciembre">Diciembre</option>
+    </select>
+    <input type="text" id="dateInput" placeholder="Fecha (DD/MM)" required>
+    <input type="text" id="amountInput" placeholder="Monto" required>
+    <select id="categoryInput" required>
+        <option value="" disabled selected>Seleccionar Categoría</option>
+        <option value="OTROS">OTROS</option>
+        <option value="HCC">HCC</option>
+        <option value="CS">CS</option>
+        <option value="OCK">OCK</option>
+        <option value="FENIX">FENIX</option>
+    </select>
+    <input type="text" id="descriptionInput" placeholder="Descripción (opcional)">
+    <button type="button" onclick="addEntry()">Agregar</button>
+</form>
+
+<h3>Enero</h3>
+<button class="toggle-button" onclick="toggleDescriptions('eneroTable')">Mostrar/Ocultar Descripciones</button>
+<table id="eneroTable">
+    <thead>
+        <tr>
+            <th onclick="sortTable(0, 'eneroTable')">Fecha (DD/MM)</th>
+            <th onclick="sortTable(1, 'eneroTable')">Monto</th>
+            <th onclick="sortTable(2, 'eneroTable')">Categoría</th>
+            <th>Descripción</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="OTROS">
+            <td>06/01</td>
+            <td>$5.93</td>
+            <td>OTROS</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description">PATRIA LENIN</div>
+            </td>
+        </tr>
+        <tr class="HCC">
+            <td>15/01</td>
+            <td>$2.78</td>
+            <td>HCC</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description">QNA</div>
+            </td>
+        </tr>
+        <tr class="HCC">
+            <td>16/01</td>
+            <td>$84.77</td>
+            <td>HCC</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description">PATRIA</div>
+            </td>
+        </tr>
+        <tr class="OTROS">
+            <td>21/01</td>
+            <td>$2.36</td>
+            <td>OTROS</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description">PENSION PADRE</div>
+            </td>
+        </tr>
+        <tr class="OTROS">
+            <td>24/01</td>
+            <td>$4.62</td>
+            <td>OTROS</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description">PATRIA LENIN</div>
+            </td>
+        </tr>
+        <tr class="FENIX">
+            <td>27/01</td>
+            <td>$26.88</td>
+            <td>FENIX</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description">TASA 56,65 BS</div>
+            </td>
+        </tr>
+        <tr class="OTROS">
+            <td>28/01</td>
+            <td>$4.57</td>
+            <td>OTROS</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description">Patria padre</div>
+            </td>
+        </tr>
+        <tr class="OTROS">
+            <td>29/01</td>
+            <td>$12.00</td>
+            <td>OTROS</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description">GASOLINA</div>
+            </td>
+        </tr>
+        <tr class="OTROS">
+            <td>31/01</td>
+            <td>$8.98</td>
+            <td>OTROS</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description">PATRIA LENIN</div>
+            </td>
+        </tr>
+        <tr class="CS">
+            <td>31/01</td>
+            <td>$291.43</td>
+            <td>CS</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggleDescription(this)">👁️</button>
+                <div class="description"></div>
+            </td>
+        </tr>
+        <tr class="OCK">
+            <td>31/01</td>
+            <td>$588.27</td>
+            <td>OCK</td>
+            <td class="description-cell">
+                <button class="toggle-button" onclick="toggle
